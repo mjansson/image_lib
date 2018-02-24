@@ -34,7 +34,7 @@ image_module_initialize(const image_config_t config) {
 
 	image_initialize_config(config);
 
-	log_debugf(HASH_IMAGE, STRING_CONST("Initializing image module"));
+	log_debug(HASH_IMAGE, STRING_CONST("Initializing image module"));
 
 	_image_initialized = true;
 
