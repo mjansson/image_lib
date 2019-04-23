@@ -11,7 +11,8 @@
  *
  * https://github.com/rampantpixels/foundation_lib
  *
- * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
+ * This library is put in the public domain; you can redistribute it and/or modify it without any
+ * restrictions.
  *
  */
 
@@ -50,3 +51,38 @@ image_module_config(void);
 \return Version of image module */
 IMAGE_API version_t
 image_module_version(void);
+
+image_t*
+image_allocate(const image_pixelformat_t* pixelformat, image_colorspace_t colorspace, unsigned int width,
+               unsigned int height, unsigned int depth, unsigned int miplevels);
+
+void
+image_deallocate(image_t* image);
+
+void*
+image_buffer(image_t* image, unsigned int miplevel);
+
+unsigned int
+image_buffer_size(image_t* image, unsigned int level, unsigned int num_levels);
+
+unsigned int
+image_raw_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
+                      unsigned int depth, unsigned int levels);
+
+image_t*
+image_load_raw(stream_t* stream);
+
+void
+image_save_raw(stream_t* stream, image_t* image);
+
+uint64_t
+image_io_raw_size(image_t* image);
+
+unsigned int
+image_width(const image_t* image, unsigned int level);
+
+unsigned int
+image_height(const image_t* image, unsigned int level);
+
+unsigned int
+image_depth(const image_t* image, unsigned int level);
