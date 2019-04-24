@@ -45,38 +45,73 @@
 #endif
 
 typedef enum image_datatype_t {
-	IMAGE_DATATYPE_UNSIGNED_INT,
+	IMAGE_DATATYPE_UNSIGNED_INT = 0,
+	IMAGE_DATATYPE_INT,
 	IMAGE_DATATYPE_FLOAT,
 
 	IMAGE_NUM_DATATYPE
 } image_datatype_t;
 
 typedef enum image_colorspace_t {
-	IMAGE_COLORSPACE_LINEAR,
+	IMAGE_COLORSPACE_LINEAR = 0,
 	IMAGE_COLORSPACE_sRGB,
 
 	IMAGE_NUM_COLORSPACE
 } image_colorspace_t;
 
+typedef enum image_channel_t {
+	IMAGE_CHANNEL_RED = 0,
+	IMAGE_CHANNEL_GREEN,
+	IMAGE_CHANNEL_BLUE,
+	IMAGE_CHANNEL_ALPHA,
+	IMAGE_CHANNEL_DEPTH,
+
+	IMAGE_NUM_CHANNELS = 16
+} image_channel_t;
+
+typedef enum image_compression_t {
+	IMAGE_COMPRESSION_NONE = 0,
+	IMAGE_COMPRESSION_BC1,
+	IMAGE_COMPRESSION_BC2,
+	IMAGE_COMPRESSION_BC3,
+	IMAGE_COMPRESSION_PVRTC_2BPP,
+	IMAGE_COMPRESSION_PVRTC_4BPP,
+	IMAGE_COMPRESSION_PVRTC2_2BPP,
+	IMAGE_COMPRESSION_PVRTC2_4BPP,
+	IMAGE_COMPRESSION_ETC1,
+	IMAGE_COMPRESSION_ETC2,
+
+	IMAGE_NUM_COMPRESSION
+} image_compression_t;
+
 typedef struct image_config_t image_config_t;
 typedef struct image_t image_t;
 typedef struct image_pixelformat_t image_pixelformat_t;
+typedef struct image_channel_format_t image_channel_format_t;
+
+typedef int (*image_load_fn)(image_t*, stream_t*);
 
 struct image_config_t {
-	size_t _unused;
+	image_load_fn loader;
+};
+
+struct image_channel_format_t {
+	image_datatype_t data_type;
+	unsigned int bits_per_pixel;
+	unsigned int offset;
 };
 
 struct image_pixelformat_t {
-	unsigned int num_channels;
+	image_compression_t compression;
+	image_colorspace_t colorspace;
+	bool premultiplied_alpha;
 	unsigned int bits_per_pixel;
-	image_datatype_t data_type;
-	unsigned int channel_bits[8];
-	unsigned int channel_offset[8];
+	unsigned int num_channels;
+	image_channel_format_t channel[IMAGE_NUM_CHANNELS];
 };
 
 struct image_t {
 	image_pixelformat_t format;
-	image_colorspace_t colorspace;
 	unsigned int width;
 	unsigned int height;
 	unsigned int depth;

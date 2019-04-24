@@ -52,31 +52,29 @@ image_module_config(void);
 IMAGE_API version_t
 image_module_version(void);
 
+void
+image_initialize(image_t* image);
+
+void
+image_finalize(image_t* image);
+
 image_t*
-image_allocate(const image_pixelformat_t* pixelformat, image_colorspace_t colorspace, unsigned int width,
-               unsigned int height, unsigned int depth, unsigned int miplevels);
+image_allocate(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
+               unsigned int depth, unsigned int levels);
 
 void
 image_deallocate(image_t* image);
 
+void
+image_allocate_storage(image_t* image, const image_pixelformat_t* pixelformat, unsigned int width,
+                       unsigned int height, unsigned int depth, unsigned int levels);
+
 void*
 image_buffer(image_t* image, unsigned int miplevel);
 
-unsigned int
-image_buffer_size(image_t* image, unsigned int level, unsigned int num_levels);
-
-unsigned int
-image_raw_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
-                      unsigned int depth, unsigned int levels);
-
-image_t*
-image_load_raw(stream_t* stream);
-
-void
-image_save_raw(stream_t* stream, image_t* image);
-
-uint64_t
-image_io_raw_size(image_t* image);
+size_t
+image_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
+                  unsigned int depth, unsigned int levels);
 
 unsigned int
 image_width(const image_t* image, unsigned int level);
@@ -86,3 +84,6 @@ image_height(const image_t* image, unsigned int level);
 
 unsigned int
 image_depth(const image_t* image, unsigned int level);
+
+int
+image_load(image_t* image, stream_t* stream);

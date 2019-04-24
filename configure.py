@@ -17,7 +17,7 @@ writer = generator.writer
 toolchain = generator.toolchain
 extrasources = []
 
-image_sources = ['image.c', 'version.c']
+image_sources = ['freeimage.c', 'image.c', 'version.c']
 
 image_lib = generator.lib(module = 'image', sources = image_sources + extrasources)
 
