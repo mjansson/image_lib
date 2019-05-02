@@ -32,8 +32,10 @@ static object_t _library_freeimage;
 
 typedef void(DLL_CALLCONV* FreeImage_Initialise_Fn)(BOOL);
 typedef void(DLL_CALLCONV* FreeImage_DeInitialise_Fn)(void);
-typedef FREE_IMAGE_FORMAT(DLL_CALLCONV* FreeImage_GetFileTypeFromHandle_Fn)(FreeImageIO*, fi_handle, int);
-typedef FIBITMAP*(DLL_CALLCONV* FreeImage_LoadFromHandle_Fn)(FREE_IMAGE_FORMAT, FreeImageIO*, fi_handle, int);
+typedef FREE_IMAGE_FORMAT(DLL_CALLCONV* FreeImage_GetFileTypeFromHandle_Fn)(FreeImageIO*, fi_handle,
+                                                                            int);
+typedef FIBITMAP*(DLL_CALLCONV* FreeImage_LoadFromHandle_Fn)(FREE_IMAGE_FORMAT, FreeImageIO*,
+                                                             fi_handle, int);
 typedef void(DLL_CALLCONV* FreeImage_Unload_Fn)(FIBITMAP*);
 
 static FreeImage_Initialise_Fn _FreeImage_Initialise;
@@ -50,16 +52,16 @@ image_freeimage_initialize(void) {
 		_library_freeimage = library_load(STRING_CONST("freeimage"));
 
 	if (_library_freeimage) {
-		_FreeImage_Initialise =
-		    (FreeImage_Initialise_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_Initialise"));
+		_FreeImage_Initialise = (FreeImage_Initialise_Fn)library_symbol(
+		    _library_freeimage, STRING_CONST("FreeImage_Initialise"));
 		_FreeImage_DeInitialise = (FreeImage_DeInitialise_Fn)library_symbol(
 		    _library_freeimage, STRING_CONST("FreeImage_DeInitialise"));
 		_FreeImage_GetFileTypeFromHandle = (FreeImage_GetFileTypeFromHandle_Fn)library_symbol(
 		    _library_freeimage, STRING_CONST("FreeImage_GetFileTypeFromHandle"));
 		_FreeImage_LoadFromHandle = (FreeImage_LoadFromHandle_Fn)library_symbol(
 		    _library_freeimage, STRING_CONST("FreeImage_LoadFromHandle"));
-		_FreeImage_Unload =
-		    (FreeImage_Unload_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_Unload"));
+		_FreeImage_Unload = (FreeImage_Unload_Fn)library_symbol(_library_freeimage,
+		                                                        STRING_CONST("FreeImage_Unload"));
 	} else {
 		_FreeImage_Initialise = 0;
 	}
@@ -139,7 +141,8 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	if (fif == FIF_UNKNOWN)
 		return -1;
 
-	FIBITMAP* bitmap = _FreeImage_LoadFromHandle(FIF_UNKNOWN, &io, (fi_handle)stream, 0);
+	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
+	FIBITMAP* bitmap = _FreeImage_LoadFromHandle(fif, &io, (fi_handle)stream, 0);
 	if (!bitmap)
 		return -1;
 
