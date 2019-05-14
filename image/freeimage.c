@@ -190,6 +190,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	image_pixelformat_t pixelformat;
 	memset(&pixelformat, 0, sizeof(pixelformat));
 
+	int err = -1;
 	unsigned int width = _FreeImage_GetWidth(bitmap);
 	unsigned int height = _FreeImage_GetHeight(bitmap);
 	unsigned int pitch = _FreeImage_GetPitch(bitmap);
@@ -202,16 +203,14 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 		goto cleanup;
 	}
 
-	if (color_type == FIC_CMYK)
-		pixelformat.colorspace = IMAGE_COLORSPACE_LINEAR;
-	else
-		pixelformat.colorspace = IMAGE_COLORSPACE_sRGB;
-
+	pixelformat.colorspace = IMAGE_COLORSPACE_LINEAR;
 	pixelformat.compression = IMAGE_COMPRESSION_NONE;
 	pixelformat.premultiplied_alpha = false;
 
 	if (image_type == FIT_BITMAP) {
 		// unsigned int bpp = _FreeImage_GetBPP(bitmap);
+		// if (color_type != FIC_CMYK)
+		//	pixelformat.colorspace = IMAGE_COLORSPACE_sRGB;
 		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
 		          STRING_CONST("Unsupported FreeImage image type: %u"), (unsigned int)image_type);
 		goto cleanup;
@@ -226,23 +225,23 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 
 		image_datatype_t data_type = IMAGE_DATATYPE_UNSIGNED_INT;
 		unsigned int bits_per_channel = 0;
-		if (color_type == FIT_RGBA16) {
+		if (image_type == FIT_RGBA16) {
 			bits_per_channel = 16;
 			pixelformat.num_channels = 4;
-		} else if (color_type == FIT_RGBAF) {
+		} else if (image_type == FIT_RGBAF) {
 			bits_per_channel = 32;
 			pixelformat.num_channels = 4;
 			data_type = IMAGE_DATATYPE_FLOAT;
-		} else if (color_type == FIT_RGB16) {
+		} else if (image_type == FIT_RGB16) {
 			bits_per_channel = 16;
 			pixelformat.num_channels = 3;
-		} else if (color_type == FIT_RGBF) {
+		} else if (image_type == FIT_RGBF) {
 			bits_per_channel = 32;
 			pixelformat.num_channels = 3;
 			data_type = IMAGE_DATATYPE_FLOAT;
 		}
 		pixelformat.bits_per_pixel = bits_per_channel * pixelformat.num_channels;
-		pixelformat.pitch = width * (pixelformat.bits_per_pixel / 8);
+		pixelformat.colorspace = IMAGE_COLORSPACE_LINEAR;
 
 		pixelformat.channel[IMAGE_CHANNEL_RED].bits_per_pixel = bits_per_channel;
 		pixelformat.channel[IMAGE_CHANNEL_RED].data_type = data_type;
@@ -264,7 +263,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 
 	if (image_type == FIT_BITMAP) {
 	} else {
-		if (color_type == FIT_RGB16) {
+		if (image_type == FIT_RGB16) {
 			const FIRGB16* line = (const FIRGB16*)_FreeImage_GetBits(bitmap);
 			const FIRGB16* source = line;
 			uint16_t* dest = (uint16_t*)image->data;
@@ -275,8 +274,9 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 					*dest++ = source->blue;
 				}
 				source = (const FIRGB16*)pointer_offset(line, pitch);
+				line = source;
 			}
-		} else if (color_type == FIT_RGBA16) {
+		} else if (image_type == FIT_RGBA16) {
 			const FIRGBA16* line = (const FIRGBA16*)_FreeImage_GetBits(bitmap);
 			const FIRGBA16* source = line;
 			uint16_t* dest = (uint16_t*)image->data;
@@ -288,8 +288,9 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 					*dest++ = source->alpha;
 				}
 				source = (const FIRGBA16*)pointer_offset(line, pitch);
+				line = source;
 			}
-		} else if (color_type == FIT_RGBF) {
+		} else if (image_type == FIT_RGBF) {
 			const FIRGBF* line = (const FIRGBF*)_FreeImage_GetBits(bitmap);
 			const FIRGBF* source = line;
 			float32_t* dest = (float32_t*)image->data;
@@ -300,8 +301,9 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 					*dest++ = source->blue;
 				}
 				source = (const FIRGBF*)pointer_offset(line, pitch);
+				line = source;
 			}
-		} else if (color_type == FIT_RGBAF) {
+		} else if (image_type == FIT_RGBAF) {
 			const FIRGBAF* line = (const FIRGBAF*)_FreeImage_GetBits(bitmap);
 			const FIRGBAF* source = line;
 			float32_t* dest = (float32_t*)image->data;
@@ -313,12 +315,15 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 					*dest++ = source->alpha;
 				}
 				source = (const FIRGBAF*)pointer_offset(line, pitch);
+				line = source;
 			}
 		}
+
+		err = 0;
 	}
 
 cleanup:
 	_FreeImage_Unload(bitmap);
 
-	return -1;
+	return err;
 }

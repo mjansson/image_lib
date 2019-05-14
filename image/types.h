@@ -108,8 +108,6 @@ struct image_pixelformat_t {
 	image_compression_t compression;
 	image_colorspace_t colorspace;
 	bool premultiplied_alpha;
-	//! Pitch in bytes of one row of pixels
-	unsigned int pitch;
 	//! Total number of bits per pixel
 	unsigned int bits_per_pixel;
 	//! Number of channels
