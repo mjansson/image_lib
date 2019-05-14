@@ -38,11 +38,25 @@ typedef FIBITMAP*(DLL_CALLCONV* FreeImage_LoadFromHandle_Fn)(FREE_IMAGE_FORMAT, 
                                                              fi_handle, int);
 typedef void(DLL_CALLCONV* FreeImage_Unload_Fn)(FIBITMAP*);
 
+typedef unsigned(DLL_CALLCONV* FreeImage_GetWidth_Fn)(FIBITMAP*);
+typedef unsigned(DLL_CALLCONV* FreeImage_GetHeight_Fn)(FIBITMAP*);
+typedef unsigned(DLL_CALLCONV* FreeImage_GetPitch_Fn)(FIBITMAP*);
+typedef unsigned(DLL_CALLCONV* FreeImage_GetBPP_Fn)(FIBITMAP*);
+typedef FREE_IMAGE_TYPE(DLL_CALLCONV* FreeImage_GetImageType_Fn)(FIBITMAP*);
+typedef FREE_IMAGE_COLOR_TYPE(DLL_CALLCONV* FreeImage_GetColorType_Fn)(FIBITMAP*);
+
 static FreeImage_Initialise_Fn _FreeImage_Initialise;
 static FreeImage_DeInitialise_Fn _FreeImage_DeInitialise;
 static FreeImage_GetFileTypeFromHandle_Fn _FreeImage_GetFileTypeFromHandle;
 static FreeImage_LoadFromHandle_Fn _FreeImage_LoadFromHandle;
 static FreeImage_Unload_Fn _FreeImage_Unload;
+
+static FreeImage_GetWidth_Fn _FreeImage_GetWidth;
+static FreeImage_GetHeight_Fn _FreeImage_GetHeight;
+static FreeImage_GetPitch_Fn _FreeImage_GetPitch;
+static FreeImage_GetBPP_Fn _FreeImage_GetBPP;
+static FreeImage_GetImageType_Fn _FreeImage_GetImageType;
+static FreeImage_GetColorType_Fn _FreeImage_GetColorType;
 
 void
 image_freeimage_initialize(void) {
@@ -62,17 +76,39 @@ image_freeimage_initialize(void) {
 		    _library_freeimage, STRING_CONST("FreeImage_LoadFromHandle"));
 		_FreeImage_Unload = (FreeImage_Unload_Fn)library_symbol(_library_freeimage,
 		                                                        STRING_CONST("FreeImage_Unload"));
+		_FreeImage_GetWidth = (FreeImage_GetWidth_Fn)library_symbol(
+		    _library_freeimage, STRING_CONST("FreeImage_GetWidth"));
+		_FreeImage_GetHeight = (FreeImage_GetHeight_Fn)library_symbol(
+		    _library_freeimage, STRING_CONST("FreeImage_GetHeight"));
+		_FreeImage_GetPitch = (FreeImage_GetPitch_Fn)library_symbol(
+		    _library_freeimage, STRING_CONST("FreeImage_GetPitch"));
+		_FreeImage_GetBPP = (FreeImage_GetBPP_Fn)library_symbol(_library_freeimage,
+		                                                        STRING_CONST("FreeImage_GetBPP"));
+		_FreeImage_GetPitch = (FreeImage_GetPitch_Fn)library_symbol(
+		    _library_freeimage, STRING_CONST("FreeImage_GetPitch"));
+		_FreeImage_GetImageType = (FreeImage_GetImageType_Fn)library_symbol(
+		    _library_freeimage, STRING_CONST("FreeImage_GetImageType"));
+		_FreeImage_GetColorType = (FreeImage_GetColorType_Fn)library_symbol(
+		    _library_freeimage, STRING_CONST("FreeImage_GetColorType"));
 	} else {
 		_FreeImage_Initialise = 0;
 	}
 
 	if (!_FreeImage_Initialise || !_FreeImage_DeInitialise || !_FreeImage_GetFileTypeFromHandle ||
-	    !_FreeImage_LoadFromHandle || !_FreeImage_Unload) {
+	    !_FreeImage_LoadFromHandle || !_FreeImage_Unload || !_FreeImage_GetWidth ||
+	    !_FreeImage_GetHeight || !_FreeImage_GetPitch || !_FreeImage_GetBPP ||
+	    !_FreeImage_GetImageType || !_FreeImage_GetColorType) {
 		_FreeImage_Initialise = 0;
 		_FreeImage_DeInitialise = 0;
 		_FreeImage_GetFileTypeFromHandle = 0;
 		_FreeImage_LoadFromHandle = 0;
 		_FreeImage_Unload = 0;
+		_FreeImage_GetWidth = 0;
+		_FreeImage_GetHeight = 0;
+		_FreeImage_GetPitch = 0;
+		_FreeImage_GetBPP = 0;
+		_FreeImage_GetImageType = 0;
+		_FreeImage_GetColorType = 0;
 	}
 
 	if (_FreeImage_Initialise)
@@ -146,8 +182,64 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	if (!bitmap)
 		return -1;
 
-	FOUNDATION_UNUSED(image);
+	image_pixelformat_t pixelformat;
 
+	unsigned int width = _FreeImage_GetWidth(bitmap);
+	unsigned int height = _FreeImage_GetHeight(bitmap);
+	unsigned int pitch = _FreeImage_GetPitch(bitmap);
+	unsigned int bpp = _FreeImage_GetBPP(bitmap);
+	FREE_IMAGE_TYPE image_type = _FreeImage_GetImageType(bitmap);
+	FREE_IMAGE_COLOR_TYPE color_type = _FreeImage_GetColorType(bitmap);
+
+	if ((color_type != FIC_RGB) && (color_type != FIC_RGBALPHA) && (color_type != FIC_CMYK)) {
+		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
+		          STRING_CONST("Unsupported FreeImage color type: %u"), (unsigned int)color_type);
+		goto cleanup;
+	}
+
+	if (color_type == FIC_CMYK)
+		pixelformat.colorspace = IMAGE_COLORSPACE_LINEAR;
+	else
+		pixelformat.colorspace = IMAGE_COLORSPACE_sRGB;
+
+	pixelformat.compression = IMAGE_COMPRESSION_NONE;
+	pixelformat.premultiplied_alpha = false;
+
+	if (image_type == FIT_BITMAP) {
+		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
+		          STRING_CONST("Unsupported FreeImage image type: %u"), (unsigned int)image_type);
+		goto cleanup;
+	} else {
+		if ((image_type != FIT_RGB16) && (image_type != FIT_RGBA16) && (image_type != FIT_RGBF) &&
+		    (image_type != FIT_RGBAF)) {
+			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
+			          STRING_CONST("Unsupported FreeImage image type: %u"),
+			          (unsigned int)image_type);
+			goto cleanup;
+		}
+
+		if (color_type == FIT_RGBA16) {
+			pixelformat.bits_per_pixel = 64;
+			pixelformat.num_channels = 4;
+		} else if (color_type == FIT_RGBAF) {
+			pixelformat.bits_per_pixel = 128;
+			pixelformat.num_channels = 4;
+		} else if (color_type == FIT_RGB16) {
+			pixelformat.bits_per_pixel = 48;
+			pixelformat.num_channels = 3;
+		} else if (color_type == FIT_RGBF) {
+			pixelformat.bits_per_pixel = 96;
+			pixelformat.num_channels = 3;
+		}
+	}
+
+	image_allocate_storage(image, &pixelformat, width, height, 1, 1);
+
+	FOUNDATION_UNUSED(pitch);
+	FOUNDATION_UNUSED(bpp);
+	FOUNDATION_UNUSED(image_type);
+
+cleanup:
 	_FreeImage_Unload(bitmap);
 
 	return -1;
