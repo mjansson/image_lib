@@ -96,8 +96,11 @@ struct image_config_t {
 };
 
 struct image_channel_format_t {
+	//! Channel data type
 	image_datatype_t data_type;
+	//! Bits per pixel for this channel
 	unsigned int bits_per_pixel;
+	//! Offset from pixel start in bits for this channel
 	unsigned int offset;
 };
 
@@ -105,7 +108,11 @@ struct image_pixelformat_t {
 	image_compression_t compression;
 	image_colorspace_t colorspace;
 	bool premultiplied_alpha;
+	//! Pitch in bytes of one row of pixels
+	unsigned int pitch;
+	//! Total number of bits per pixel
 	unsigned int bits_per_pixel;
+	//! Number of channels
 	unsigned int num_channels;
 	image_channel_format_t channel[IMAGE_NUM_CHANNELS];
 };
