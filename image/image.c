@@ -199,3 +199,23 @@ image_load(image_t* image, stream_t* stream) {
 		result = image_freeimage_load(image, stream);
 	return result;
 }
+
+int
+image_convert_channels(image_t* image, image_datatype_t data_type, unsigned int bitdepth) {
+	bool need_convert = false;
+	for (unsigned int ich = 0; ich < IMAGE_NUM_CHANNELS; ++ich) {
+		if (!image->format.channel[ich].bits_per_pixel)
+			continue;
+		if ((image->format.channel[ich].bits_per_pixel != bitdepth) ||
+		    (image->format.channel[ich].data_type != data_type)) {
+			need_convert = true;
+			break;
+		}
+	}
+	if (!need_convert)
+		return 0;
+
+	// TODO: Implement
+
+	return -1;
+}

@@ -207,13 +207,28 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	pixelformat.compression = IMAGE_COMPRESSION_NONE;
 	pixelformat.premultiplied_alpha = false;
 
+	image_datatype_t data_type = IMAGE_DATATYPE_UNSIGNED_INT;
+	unsigned int bits_per_channel = 0;
+
 	if (image_type == FIT_BITMAP) {
-		// unsigned int bpp = _FreeImage_GetBPP(bitmap);
-		// if (color_type != FIC_CMYK)
-		//	pixelformat.colorspace = IMAGE_COLORSPACE_sRGB;
-		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
-		          STRING_CONST("Unsupported FreeImage image type: %u"), (unsigned int)image_type);
-		goto cleanup;
+		unsigned int bpp = _FreeImage_GetBPP(bitmap);
+		if ((color_type != FIC_RGB) && (color_type != FIC_RGBALPHA)) {
+			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
+			          STRING_CONST("Unsupported FreeImage color type: %u"),
+			          (unsigned int)image_type);
+			goto cleanup;
+		}
+		if ((bpp != 24) && (bpp != 32)) {
+			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
+			          STRING_CONST("Unsupported FreeImage bitdepth: %u"), bpp);
+			goto cleanup;
+		}
+
+		if (color_type == FIC_RGBALPHA)
+			pixelformat.num_channels = 4;
+		else
+			pixelformat.num_channels = 3;
+		bits_per_channel = 8;
 	} else {
 		if ((image_type != FIT_RGB16) && (image_type != FIT_RGBA16) && (image_type != FIT_RGBF) &&
 		    (image_type != FIT_RGBAF)) {
@@ -223,8 +238,6 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			goto cleanup;
 		}
 
-		image_datatype_t data_type = IMAGE_DATATYPE_UNSIGNED_INT;
-		unsigned int bits_per_channel = 0;
 		if (image_type == FIT_RGBA16) {
 			bits_per_channel = 16;
 			pixelformat.num_channels = 4;
@@ -240,28 +253,63 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			pixelformat.num_channels = 3;
 			data_type = IMAGE_DATATYPE_FLOAT;
 		}
-		pixelformat.bits_per_pixel = bits_per_channel * pixelformat.num_channels;
-		pixelformat.colorspace = IMAGE_COLORSPACE_LINEAR;
+	}
 
-		pixelformat.channel[IMAGE_CHANNEL_RED].bits_per_pixel = bits_per_channel;
-		pixelformat.channel[IMAGE_CHANNEL_RED].data_type = data_type;
-		pixelformat.channel[IMAGE_CHANNEL_RED].offset = 0;
-		pixelformat.channel[IMAGE_CHANNEL_GREEN].bits_per_pixel = bits_per_channel;
-		pixelformat.channel[IMAGE_CHANNEL_GREEN].data_type = data_type;
-		pixelformat.channel[IMAGE_CHANNEL_GREEN].offset = bits_per_channel;
-		pixelformat.channel[IMAGE_CHANNEL_BLUE].bits_per_pixel = bits_per_channel;
-		pixelformat.channel[IMAGE_CHANNEL_BLUE].data_type = data_type;
-		pixelformat.channel[IMAGE_CHANNEL_BLUE].offset = bits_per_channel * 2;
-		if (pixelformat.num_channels == 4) {
-			pixelformat.channel[IMAGE_CHANNEL_ALPHA].bits_per_pixel = bits_per_channel;
-			pixelformat.channel[IMAGE_CHANNEL_ALPHA].data_type = data_type;
-			pixelformat.channel[IMAGE_CHANNEL_ALPHA].offset = bits_per_channel * 3;
-		}
+	pixelformat.bits_per_pixel = bits_per_channel * pixelformat.num_channels;
+
+	if (data_type == IMAGE_DATATYPE_FLOAT)
+		pixelformat.colorspace = IMAGE_COLORSPACE_LINEAR;
+	else
+		pixelformat.colorspace = IMAGE_COLORSPACE_sRGB;
+
+	pixelformat.channel[IMAGE_CHANNEL_RED].bits_per_pixel = bits_per_channel;
+	pixelformat.channel[IMAGE_CHANNEL_RED].data_type = data_type;
+	pixelformat.channel[IMAGE_CHANNEL_RED].offset = 0;
+	pixelformat.channel[IMAGE_CHANNEL_GREEN].bits_per_pixel = bits_per_channel;
+	pixelformat.channel[IMAGE_CHANNEL_GREEN].data_type = data_type;
+	pixelformat.channel[IMAGE_CHANNEL_GREEN].offset = bits_per_channel;
+	pixelformat.channel[IMAGE_CHANNEL_BLUE].bits_per_pixel = bits_per_channel;
+	pixelformat.channel[IMAGE_CHANNEL_BLUE].data_type = data_type;
+	pixelformat.channel[IMAGE_CHANNEL_BLUE].offset = bits_per_channel * 2;
+	if (pixelformat.num_channels == 4) {
+		pixelformat.channel[IMAGE_CHANNEL_ALPHA].bits_per_pixel = bits_per_channel;
+		pixelformat.channel[IMAGE_CHANNEL_ALPHA].data_type = data_type;
+		pixelformat.channel[IMAGE_CHANNEL_ALPHA].offset = bits_per_channel * 3;
 	}
 
 	image_allocate_storage(image, &pixelformat, width, height, 1, 1);
 
 	if (image_type == FIT_BITMAP) {
+		if (color_type == FIC_RGB) {
+			const RGBTRIPLE* line = (const RGBTRIPLE*)_FreeImage_GetBits(bitmap);
+			const RGBTRIPLE* source = line;
+			uint8_t* dest = (uint8_t*)image->data;
+			for (unsigned int y = 0; y < height; ++y) {
+				for (unsigned int x = 0; x < width; ++x, ++source) {
+					*dest++ = source->rgbtRed;
+					*dest++ = source->rgbtGreen;
+					*dest++ = source->rgbtBlue;
+				}
+				source = (const RGBTRIPLE*)pointer_offset(line, pitch);
+				line = source;
+			}
+			err = 0;
+		} else if (image_type == FIC_RGBALPHA) {
+			const RGBQUAD* line = (const RGBQUAD*)_FreeImage_GetBits(bitmap);
+			const RGBQUAD* source = line;
+			uint8_t* dest = (uint8_t*)image->data;
+			for (unsigned int y = 0; y < height; ++y) {
+				for (unsigned int x = 0; x < width; ++x, ++source) {
+					*dest++ = source->rgbRed;
+					*dest++ = source->rgbGreen;
+					*dest++ = source->rgbBlue;
+					*dest++ = source->rgbReserved;
+				}
+				source = (const RGBQUAD*)pointer_offset(line, pitch);
+				line = source;
+			}
+			err = 0;
+		}
 	} else {
 		if (image_type == FIT_RGB16) {
 			const FIRGB16* line = (const FIRGB16*)_FreeImage_GetBits(bitmap);
@@ -276,6 +324,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 				source = (const FIRGB16*)pointer_offset(line, pitch);
 				line = source;
 			}
+			err = 0;
 		} else if (image_type == FIT_RGBA16) {
 			const FIRGBA16* line = (const FIRGBA16*)_FreeImage_GetBits(bitmap);
 			const FIRGBA16* source = line;
@@ -290,6 +339,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 				source = (const FIRGBA16*)pointer_offset(line, pitch);
 				line = source;
 			}
+			err = 0;
 		} else if (image_type == FIT_RGBF) {
 			const FIRGBF* line = (const FIRGBF*)_FreeImage_GetBits(bitmap);
 			const FIRGBF* source = line;
@@ -303,6 +353,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 				source = (const FIRGBF*)pointer_offset(line, pitch);
 				line = source;
 			}
+			err = 0;
 		} else if (image_type == FIT_RGBAF) {
 			const FIRGBAF* line = (const FIRGBAF*)_FreeImage_GetBits(bitmap);
 			const FIRGBAF* source = line;
@@ -317,9 +368,8 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 				source = (const FIRGBAF*)pointer_offset(line, pitch);
 				line = source;
 			}
+			err = 0;
 		}
-
-		err = 0;
 	}
 
 cleanup:

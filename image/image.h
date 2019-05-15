@@ -87,3 +87,6 @@ image_depth(const image_t* image, unsigned int level);
 
 int
 image_load(image_t* image, stream_t* stream);
+
+int
+image_convert_channels(image_t* image, image_datatype_t data_type, unsigned int bitdepth);
