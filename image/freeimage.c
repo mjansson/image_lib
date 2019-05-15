@@ -279,94 +279,97 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 
 	image_allocate_storage(image, &pixelformat, width, height, 1, 1);
 
+	// FreeImage loads images with top-left corner at start of buffer,
+	// but we store images with bottom-left corner at start of buffer
 	if (image_type == FIT_BITMAP) {
 		if (color_type == FIC_RGB) {
 			const RGBTRIPLE* line = (const RGBTRIPLE*)_FreeImage_GetBits(bitmap);
-			const RGBTRIPLE* source = line;
+			const RGBTRIPLE* source = (const RGBTRIPLE*)pointer_offset(line, pitch * (height - 1));
 			uint8_t* dest = (uint8_t*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
+				line = source;
 				for (unsigned int x = 0; x < width; ++x, ++source) {
 					*dest++ = source->rgbtRed;
 					*dest++ = source->rgbtGreen;
 					*dest++ = source->rgbtBlue;
 				}
-				source = (const RGBTRIPLE*)pointer_offset(line, pitch);
-				line = source;
+				source = (const RGBTRIPLE*)pointer_offset(line, -(int)pitch);
 			}
 			err = 0;
-		} else if (image_type == FIC_RGBALPHA) {
+		} else if (color_type == FIC_RGBALPHA) {
 			const RGBQUAD* line = (const RGBQUAD*)_FreeImage_GetBits(bitmap);
-			const RGBQUAD* source = line;
+			const RGBQUAD* source = (const RGBQUAD*)pointer_offset(line, pitch * (height - 1));
 			uint8_t* dest = (uint8_t*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
+				line = source;
 				for (unsigned int x = 0; x < width; ++x, ++source) {
 					*dest++ = source->rgbRed;
 					*dest++ = source->rgbGreen;
 					*dest++ = source->rgbBlue;
 					*dest++ = source->rgbReserved;
 				}
-				source = (const RGBQUAD*)pointer_offset(line, pitch);
-				line = source;
+				source = (const RGBQUAD*)pointer_offset(line, -(int)pitch);
 			}
 			err = 0;
 		}
 	} else {
 		if (image_type == FIT_RGB16) {
 			const FIRGB16* line = (const FIRGB16*)_FreeImage_GetBits(bitmap);
-			const FIRGB16* source = line;
+			const FIRGB16* source = (const FIRGB16*)pointer_offset(line, pitch * (height - 1));
 			uint16_t* dest = (uint16_t*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
+				line = source;
 				for (unsigned int x = 0; x < width; ++x, ++source) {
 					*dest++ = source->red;
 					*dest++ = source->green;
 					*dest++ = source->blue;
 				}
-				source = (const FIRGB16*)pointer_offset(line, pitch);
-				line = source;
+				source = (const FIRGB16*)pointer_offset(line, -(int)pitch);
 			}
 			err = 0;
 		} else if (image_type == FIT_RGBA16) {
 			const FIRGBA16* line = (const FIRGBA16*)_FreeImage_GetBits(bitmap);
-			const FIRGBA16* source = line;
+			const FIRGBA16* source = (const FIRGBA16*)pointer_offset(line, pitch * (height - 1));
 			uint16_t* dest = (uint16_t*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
+				line = source;
 				for (unsigned int x = 0; x < width; ++x, ++source) {
 					*dest++ = source->red;
 					*dest++ = source->green;
 					*dest++ = source->blue;
 					*dest++ = source->alpha;
 				}
-				source = (const FIRGBA16*)pointer_offset(line, pitch);
-				line = source;
+				source = (const FIRGBA16*)pointer_offset(line, -(int)pitch);
 			}
 			err = 0;
 		} else if (image_type == FIT_RGBF) {
 			const FIRGBF* line = (const FIRGBF*)_FreeImage_GetBits(bitmap);
-			const FIRGBF* source = line;
+			const FIRGBF* source = (const FIRGBF*)pointer_offset(line, pitch * (height - 1));
 			float32_t* dest = (float32_t*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
+				line = source;
 				for (unsigned int x = 0; x < width; ++x, ++source) {
 					*dest++ = source->red;
 					*dest++ = source->green;
 					*dest++ = source->blue;
 				}
-				source = (const FIRGBF*)pointer_offset(line, pitch);
+				source = (const FIRGBF*)pointer_offset(line, -(int)pitch);
 				line = source;
 			}
 			err = 0;
 		} else if (image_type == FIT_RGBAF) {
 			const FIRGBAF* line = (const FIRGBAF*)_FreeImage_GetBits(bitmap);
-			const FIRGBAF* source = line;
+			const FIRGBAF* source = (const FIRGBAF*)pointer_offset(line, pitch * (height - 1));
 			float32_t* dest = (float32_t*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
+				line = source;
 				for (unsigned int x = 0; x < width; ++x, ++source) {
 					*dest++ = source->red;
 					*dest++ = source->green;
 					*dest++ = source->blue;
 					*dest++ = source->alpha;
 				}
-				source = (const FIRGBAF*)pointer_offset(line, pitch);
-				line = source;
+				source = (const FIRGBAF*)pointer_offset(line, -(int)pitch);
 			}
 			err = 0;
 		}
