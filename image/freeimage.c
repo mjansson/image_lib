@@ -178,11 +178,12 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	FreeImageIO io = {image_freeimage_read, image_freeimage_write, image_freeimage_seek,
 	                  image_freeimage_tell};
 
+	size_t begin_pos = stream_tell(stream);
 	FREE_IMAGE_FORMAT fif = _FreeImage_GetFileTypeFromHandle(&io, (fi_handle)stream, 0);
 	if (fif == FIF_UNKNOWN)
 		return -1;
 
-	stream_seek(stream, 0, STREAM_SEEK_BEGIN);
+	stream_seek(stream, begin_pos, STREAM_SEEK_BEGIN);
 	FIBITMAP* bitmap = _FreeImage_LoadFromHandle(fif, &io, (fi_handle)stream, 0);
 	if (!bitmap)
 		return -1;
