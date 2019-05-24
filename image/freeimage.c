@@ -198,6 +198,9 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	FREE_IMAGE_TYPE image_type = _FreeImage_GetImageType(bitmap);
 	FREE_IMAGE_COLOR_TYPE color_type = _FreeImage_GetColorType(bitmap);
 
+	log_infof(HASH_IMAGE, STRING_CONST("Loaded image: %.*s (type %d, color %d)"),
+	          STRING_FORMAT(stream->path), (int)image_type, (int)color_type);
+
 	if ((color_type != FIC_RGB) && (color_type != FIC_RGBALPHA) && (color_type != FIC_CMYK)) {
 		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
 		          STRING_CONST("Unsupported FreeImage color type: %u"), (unsigned int)color_type);
