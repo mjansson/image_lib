@@ -89,7 +89,7 @@ typedef struct image_t image_t;
 typedef struct image_pixelformat_t image_pixelformat_t;
 typedef struct image_channel_format_t image_channel_format_t;
 
-typedef int (*image_load_fn)(image_t*, stream_t*);
+typedef bool (*image_load_fn)(image_t*, stream_t*);
 
 struct image_config_t {
 	image_load_fn loader;

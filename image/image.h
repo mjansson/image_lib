@@ -59,8 +59,7 @@ void
 image_finalize(image_t* image);
 
 image_t*
-image_allocate(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
-               unsigned int depth, unsigned int levels);
+image_allocate(void);
 
 void
 image_deallocate(image_t* image);
@@ -85,8 +84,8 @@ image_height(const image_t* image, unsigned int level);
 unsigned int
 image_depth(const image_t* image, unsigned int level);
 
-int
+bool
 image_load(image_t* image, stream_t* stream);
 
-int
+bool
 image_convert_channels(image_t* image, image_datatype_t data_type, unsigned int bitdepth);

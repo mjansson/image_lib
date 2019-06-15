@@ -170,23 +170,27 @@ image_freeimage_tell(fi_handle handle) {
 	return (long)stream_tell(stream);
 }
 
-int
+bool
 image_freeimage_load(image_t* image, stream_t* stream) {
 	if (!_FreeImage_LoadFromHandle)
-		return -1;
+		return false;
 
 	FreeImageIO io = {image_freeimage_read, image_freeimage_write, image_freeimage_seek,
 	                  image_freeimage_tell};
 
 	size_t begin_pos = stream_tell(stream);
 	FREE_IMAGE_FORMAT fif = _FreeImage_GetFileTypeFromHandle(&io, (fi_handle)stream, 0);
-	if (fif == FIF_UNKNOWN)
-		return -1;
+	if (fif == FIF_UNKNOWN) {
+		log_info(HASH_IMAGE, STRING_CONST("FreeImage failed to get file type from stream"));
+		return false;
+	}
 
 	stream_seek(stream, begin_pos, STREAM_SEEK_BEGIN);
 	FIBITMAP* bitmap = _FreeImage_LoadFromHandle(fif, &io, (fi_handle)stream, 0);
-	if (!bitmap)
-		return -1;
+	if (!bitmap) {
+		log_info(HASH_IMAGE, STRING_CONST("FreeImage failed to load image from stream"));
+		return false;
+	}
 
 	image_pixelformat_t pixelformat;
 	memset(&pixelformat, 0, sizeof(pixelformat));
@@ -382,5 +386,5 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 cleanup:
 	_FreeImage_Unload(bitmap);
 
-	return err;
+	return !err;
 }

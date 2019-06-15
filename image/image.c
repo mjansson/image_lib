@@ -83,11 +83,9 @@ image_finalize(image_t* image) {
 }
 
 image_t*
-image_allocate(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
-               unsigned int depth, unsigned int levels) {
+image_allocate(void) {
 	image_t* image = memory_allocate(HASH_IMAGE, sizeof(image_t), 0, MEMORY_PERSISTENT);
 	image_initialize(image);
-	image_allocate_storage(image, pixelformat, width, height, depth, levels);
 	return image;
 }
 
@@ -190,17 +188,18 @@ image_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, un
 	return total_size;
 }
 
-int
+bool
 image_load(image_t* image, stream_t* stream) {
-	int result = -1;
-	if (_image_config.loader)
-		result = _image_config.loader(image, stream);
-	if (result < 0)
-		result = image_freeimage_load(image, stream);
-	return result;
+	if (_image_config.loader) {
+		if (_image_config.loader(image, stream))
+			return true;
+	}
+	if (image_freeimage_load(image, stream))
+		return true;
+	return false;
 }
 
-int
+bool
 image_convert_channels(image_t* image, image_datatype_t data_type, unsigned int bitdepth) {
 	bool need_convert = false;
 	for (unsigned int ich = 0; ich < IMAGE_NUM_CHANNELS; ++ich) {
@@ -213,9 +212,9 @@ image_convert_channels(image_t* image, image_datatype_t data_type, unsigned int 
 		}
 	}
 	if (!need_convert)
-		return 0;
+		return true;
 
 	// TODO: Implement
 
-	return -1;
+	return false;
 }
