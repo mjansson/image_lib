@@ -20,5 +20,5 @@
 
 #include <image/types.h>
 
-bool
+IMAGE_API bool
 image_freeimage_load(image_t* image, stream_t* stream);
