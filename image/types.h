@@ -53,7 +53,9 @@ typedef enum image_datatype_t {
 } image_datatype_t;
 
 typedef enum image_colorspace_t {
-	IMAGE_COLORSPACE_LINEAR = 0,
+	IMAGE_COLORSPACE_UNKNOWN = 0,
+
+	IMAGE_COLORSPACE_LINEAR,
 	IMAGE_COLORSPACE_sRGB,
 
 	IMAGE_NUM_COLORSPACE
