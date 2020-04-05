@@ -1,15 +1,15 @@
-/* image.c  -  Image library  -  Public Domain  -  2018 Mattias Jansson / Rampant Pixels
+/* image.c  -  Image library  -  Public Domain  -  2018 Mattias Jansson
  *
  * This library provides a cross-platform image loading library in C11 for projects
  * based on our foundation library.
  *
- * The latest source code maintained by Rampant Pixels is always available at
+ * The latest source code maintained by Mattias Jansson is always available at
  *
- * https://github.com/rampantpixels/image_lib
+ * https://github.com/mjansson/image_lib
  *
  * This library is built on top of the foundation library available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without any
  * restrictions.
@@ -96,8 +96,8 @@ image_deallocate(image_t* image) {
 }
 
 void
-image_allocate_storage(image_t* image, const image_pixelformat_t* pixelformat, unsigned int width,
-                       unsigned int height, unsigned int depth, unsigned int levels) {
+image_allocate_storage(image_t* image, const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
+                       unsigned int depth, unsigned int levels) {
 	if (image->data)
 		memory_deallocate(image->data);
 
@@ -150,11 +150,11 @@ image_depth(const image_t* image, unsigned int level) {
 }
 
 size_t
-image_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height,
-                  unsigned int depth, unsigned int num_levels) {
+image_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, unsigned int height, unsigned int depth,
+                  unsigned int level_count) {
 	size_t total_size = 0;
 
-	while (num_levels) {
+	while (level_count) {
 		if (!width)
 			width = 1;
 		if (!height)
@@ -182,7 +182,7 @@ image_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, un
 		width >>= 1;
 		height >>= 1;
 		depth >>= 1;
-		--num_levels;
+		--level_count;
 	}
 
 	return total_size;
@@ -202,7 +202,7 @@ image_load(image_t* image, stream_t* stream) {
 bool
 image_convert_channels(image_t* image, image_datatype_t data_type, unsigned int bitdepth) {
 	bool need_convert = false;
-	for (unsigned int ich = 0; ich < IMAGE_NUM_CHANNELS; ++ich) {
+	for (unsigned int ich = 0; ich < IMAGE_CHANNEL_COUNT; ++ich) {
 		if (!image->format.channel[ich].bits_per_pixel)
 			continue;
 		if ((image->format.channel[ich].bits_per_pixel != bitdepth) ||

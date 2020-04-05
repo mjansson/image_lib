@@ -1,15 +1,15 @@
-/* freeimage.c  -  Image library  -  Public Domain  -  2018 Mattias Jansson / Rampant Pixels
+/* freeimage.c  -  Image library  -  Public Domain  -  2018 Mattias Jansson
  *
  * This library provides a cross-platform image loading library in C11 for projects
  * based on our foundation library.
  *
- * The latest source code maintained by Rampant Pixels is always available at
+ * The latest source code maintained by Mattias Jansson is always available at
  *
- * https://github.com/rampantpixels/image_lib
+ * https://github.com/mjansson/image_lib
  *
  * This library is built on top of the foundation library available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without any
  * restrictions.
@@ -33,10 +33,8 @@ static object_t _library_freeimage;
 
 typedef void(DLL_CALLCONV* FreeImage_Initialise_Fn)(BOOL);
 typedef void(DLL_CALLCONV* FreeImage_DeInitialise_Fn)(void);
-typedef FREE_IMAGE_FORMAT(DLL_CALLCONV* FreeImage_GetFileTypeFromHandle_Fn)(FreeImageIO*, fi_handle,
-                                                                            int);
-typedef FIBITMAP*(DLL_CALLCONV* FreeImage_LoadFromHandle_Fn)(FREE_IMAGE_FORMAT, FreeImageIO*,
-                                                             fi_handle, int);
+typedef FREE_IMAGE_FORMAT(DLL_CALLCONV* FreeImage_GetFileTypeFromHandle_Fn)(FreeImageIO*, fi_handle, int);
+typedef FIBITMAP*(DLL_CALLCONV* FreeImage_LoadFromHandle_Fn)(FREE_IMAGE_FORMAT, FreeImageIO*, fi_handle, int);
 typedef void(DLL_CALLCONV* FreeImage_Unload_Fn)(FIBITMAP*);
 
 typedef unsigned(DLL_CALLCONV* FreeImage_GetWidth_Fn)(FIBITMAP*);
@@ -69,40 +67,38 @@ image_freeimage_initialize(void) {
 		_library_freeimage = library_load(STRING_CONST("freeimage"));
 
 	if (_library_freeimage) {
-		_FreeImage_Initialise = (FreeImage_Initialise_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_Initialise"));
-		_FreeImage_DeInitialise = (FreeImage_DeInitialise_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_DeInitialise"));
+		_FreeImage_Initialise =
+		    (FreeImage_Initialise_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_Initialise"));
+		_FreeImage_DeInitialise =
+		    (FreeImage_DeInitialise_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_DeInitialise"));
 		_FreeImage_GetFileTypeFromHandle = (FreeImage_GetFileTypeFromHandle_Fn)library_symbol(
 		    _library_freeimage, STRING_CONST("FreeImage_GetFileTypeFromHandle"));
-		_FreeImage_LoadFromHandle = (FreeImage_LoadFromHandle_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_LoadFromHandle"));
-		_FreeImage_Unload = (FreeImage_Unload_Fn)library_symbol(_library_freeimage,
-		                                                        STRING_CONST("FreeImage_Unload"));
-		_FreeImage_GetWidth = (FreeImage_GetWidth_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetWidth"));
-		_FreeImage_GetHeight = (FreeImage_GetHeight_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetHeight"));
-		_FreeImage_GetPitch = (FreeImage_GetPitch_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetPitch"));
-		_FreeImage_GetBPP = (FreeImage_GetBPP_Fn)library_symbol(_library_freeimage,
-		                                                        STRING_CONST("FreeImage_GetBPP"));
-		_FreeImage_GetPitch = (FreeImage_GetPitch_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetPitch"));
-		_FreeImage_GetImageType = (FreeImage_GetImageType_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetImageType"));
-		_FreeImage_GetColorType = (FreeImage_GetColorType_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetColorType"));
-		_FreeImage_GetBits = (FreeImage_GetBits_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetBits"));
+		_FreeImage_LoadFromHandle =
+		    (FreeImage_LoadFromHandle_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_LoadFromHandle"));
+		_FreeImage_Unload = (FreeImage_Unload_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_Unload"));
+		_FreeImage_GetWidth =
+		    (FreeImage_GetWidth_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetWidth"));
+		_FreeImage_GetHeight =
+		    (FreeImage_GetHeight_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetHeight"));
+		_FreeImage_GetPitch =
+		    (FreeImage_GetPitch_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetPitch"));
+		_FreeImage_GetBPP = (FreeImage_GetBPP_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetBPP"));
+		_FreeImage_GetPitch =
+		    (FreeImage_GetPitch_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetPitch"));
+		_FreeImage_GetImageType =
+		    (FreeImage_GetImageType_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetImageType"));
+		_FreeImage_GetColorType =
+		    (FreeImage_GetColorType_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetColorType"));
+		_FreeImage_GetBits =
+		    (FreeImage_GetBits_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetBits"));
 	} else {
 		_FreeImage_Initialise = 0;
 	}
 
 	if (!_FreeImage_Initialise || !_FreeImage_DeInitialise || !_FreeImage_GetFileTypeFromHandle ||
-	    !_FreeImage_LoadFromHandle || !_FreeImage_Unload || !_FreeImage_GetWidth ||
-	    !_FreeImage_GetHeight || !_FreeImage_GetPitch || !_FreeImage_GetBPP ||
-	    !_FreeImage_GetImageType || !_FreeImage_GetColorType || !_FreeImage_GetBits) {
+	    !_FreeImage_LoadFromHandle || !_FreeImage_Unload || !_FreeImage_GetWidth || !_FreeImage_GetHeight ||
+	    !_FreeImage_GetPitch || !_FreeImage_GetBPP || !_FreeImage_GetImageType || !_FreeImage_GetColorType ||
+	    !_FreeImage_GetBits) {
 		_FreeImage_Initialise = 0;
 		_FreeImage_DeInitialise = 0;
 		_FreeImage_GetFileTypeFromHandle = 0;
@@ -176,8 +172,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	if (!_FreeImage_LoadFromHandle)
 		return false;
 
-	FreeImageIO io = {image_freeimage_read, image_freeimage_write, image_freeimage_seek,
-	                  image_freeimage_tell};
+	FreeImageIO io = {image_freeimage_read, image_freeimage_write, image_freeimage_seek, image_freeimage_tell};
 
 	size_t begin_pos = stream_tell(stream);
 	FREE_IMAGE_FORMAT fif = _FreeImage_GetFileTypeFromHandle(&io, (fi_handle)stream, 0);
@@ -203,12 +198,12 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	FREE_IMAGE_TYPE image_type = _FreeImage_GetImageType(bitmap);
 	FREE_IMAGE_COLOR_TYPE color_type = _FreeImage_GetColorType(bitmap);
 
-	log_infof(HASH_IMAGE, STRING_CONST("Loaded image: %.*s (type %d, color %d)"),
-	          STRING_FORMAT(stream->path), (int)image_type, (int)color_type);
+	log_infof(HASH_IMAGE, STRING_CONST("Loaded image: %.*s (type %d, color %d)"), STRING_FORMAT(stream->path),
+	          (int)image_type, (int)color_type);
 
 	if ((color_type != FIC_RGB) && (color_type != FIC_RGBALPHA) && (color_type != FIC_CMYK)) {
-		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
-		          STRING_CONST("Unsupported FreeImage color type: %u"), (unsigned int)color_type);
+		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage color type: %u"),
+		          (unsigned int)color_type);
 		goto cleanup;
 	}
 
@@ -222,14 +217,12 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	if (image_type == FIT_BITMAP) {
 		unsigned int bpp = _FreeImage_GetBPP(bitmap);
 		if ((color_type != FIC_RGB) && (color_type != FIC_RGBALPHA)) {
-			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
-			          STRING_CONST("Unsupported FreeImage color type: %u"),
+			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage color type: %u"),
 			          (unsigned int)image_type);
 			goto cleanup;
 		}
 		if ((bpp != 24) && (bpp != 32)) {
-			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
-			          STRING_CONST("Unsupported FreeImage bitdepth: %u"), bpp);
+			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage bitdepth: %u"), bpp);
 			goto cleanup;
 		}
 
@@ -241,8 +234,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	} else {
 		if ((image_type != FIT_RGB16) && (image_type != FIT_RGBA16) && (image_type != FIT_RGBF) &&
 		    (image_type != FIT_RGBAF)) {
-			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED,
-			          STRING_CONST("Unsupported FreeImage image type: %u"),
+			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage image type: %u"),
 			          (unsigned int)image_type);
 			goto cleanup;
 		}
