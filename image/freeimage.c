@@ -227,9 +227,9 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 		}
 
 		if (color_type == FIC_RGBALPHA)
-			pixelformat.num_channels = 4;
+			pixelformat.channels_count = 4;
 		else
-			pixelformat.num_channels = 3;
+			pixelformat.channels_count = 3;
 		bits_per_channel = 8;
 	} else {
 		if ((image_type != FIT_RGB16) && (image_type != FIT_RGBA16) && (image_type != FIT_RGBF) &&
@@ -241,22 +241,22 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 
 		if (image_type == FIT_RGBA16) {
 			bits_per_channel = 16;
-			pixelformat.num_channels = 4;
+			pixelformat.channels_count = 4;
 		} else if (image_type == FIT_RGBAF) {
 			bits_per_channel = 32;
-			pixelformat.num_channels = 4;
+			pixelformat.channels_count = 4;
 			data_type = IMAGE_DATATYPE_FLOAT;
 		} else if (image_type == FIT_RGB16) {
 			bits_per_channel = 16;
-			pixelformat.num_channels = 3;
+			pixelformat.channels_count = 3;
 		} else if (image_type == FIT_RGBF) {
 			bits_per_channel = 32;
-			pixelformat.num_channels = 3;
+			pixelformat.channels_count = 3;
 			data_type = IMAGE_DATATYPE_FLOAT;
 		}
 	}
 
-	pixelformat.bits_per_pixel = bits_per_channel * pixelformat.num_channels;
+	pixelformat.bits_per_pixel = bits_per_channel * pixelformat.channels_count;
 
 	if (data_type == IMAGE_DATATYPE_FLOAT)
 		pixelformat.colorspace = IMAGE_COLORSPACE_LINEAR;
@@ -272,7 +272,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	pixelformat.channel[IMAGE_CHANNEL_BLUE].bits_per_pixel = bits_per_channel;
 	pixelformat.channel[IMAGE_CHANNEL_BLUE].data_type = data_type;
 	pixelformat.channel[IMAGE_CHANNEL_BLUE].offset = bits_per_channel * 2;
-	if (pixelformat.num_channels == 4) {
+	if (pixelformat.channels_count == 4) {
 		pixelformat.channel[IMAGE_CHANNEL_ALPHA].bits_per_pixel = bits_per_channel;
 		pixelformat.channel[IMAGE_CHANNEL_ALPHA].data_type = data_type;
 		pixelformat.channel[IMAGE_CHANNEL_ALPHA].offset = bits_per_channel * 3;

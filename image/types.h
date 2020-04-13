@@ -113,7 +113,7 @@ struct image_pixelformat_t {
 	//! Total number of bits per pixel
 	unsigned int bits_per_pixel;
 	//! Number of channels
-	unsigned int num_channels;
+	unsigned int channels_count;
 	image_channel_format_t channel[IMAGE_CHANNEL_COUNT];
 };
 
