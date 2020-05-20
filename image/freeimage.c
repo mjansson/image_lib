@@ -93,6 +93,7 @@ image_freeimage_initialize(void) {
 		    (FreeImage_GetBits_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetBits"));
 	} else {
 		_FreeImage_Initialise = 0;
+		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Failed to load FreeImage library"));
 	}
 
 	if (!_FreeImage_Initialise || !_FreeImage_DeInitialise || !_FreeImage_GetFileTypeFromHandle ||
