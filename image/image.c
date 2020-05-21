@@ -78,7 +78,7 @@ image_initialize(image_t* image) {
 
 void
 image_finalize(image_t* image) {
-	if (image->data)
+	if (image && image->data)
 		memory_deallocate(image->data);
 }
 
