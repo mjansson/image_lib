@@ -214,16 +214,17 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 
 	image_datatype_t data_type = IMAGE_DATATYPE_UNSIGNED_INT;
 	unsigned int bits_per_channel = 0;
+	unsigned int source_bpp = 0;
 
 	if (image_type == FIT_BITMAP) {
-		unsigned int bpp = _FreeImage_GetBPP(bitmap);
+		source_bpp = _FreeImage_GetBPP(bitmap);
 		if ((color_type != FIC_RGB) && (color_type != FIC_RGBALPHA)) {
 			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage color type: %u"),
 			          (unsigned int)image_type);
 			goto cleanup;
 		}
-		if ((bpp != 24) && (bpp != 32)) {
-			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage bitdepth: %u"), bpp);
+		if ((source_bpp != 24) && (source_bpp != 32)) {
+			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage bitdepth: %u"), source_bpp);
 			goto cleanup;
 		}
 
@@ -255,6 +256,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			pixelformat.channels_count = 3;
 			data_type = IMAGE_DATATYPE_FLOAT;
 		}
+		source_bpp = bits_per_channel * pixelformat.channels_count;
 	}
 
 	pixelformat.bits_per_pixel = bits_per_channel * pixelformat.channels_count;
@@ -281,8 +283,9 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 
 	image_allocate_storage(image, &pixelformat, width, height, 1, 1);
 
-	// FreeImage loads images with top-left corner at start of buffer,
-	// but we store images with bottom-left corner at start of buffer
+	// FreeImage loads images with bottom-left corner at start of buffer,
+	// but we store images with top-left corner at start of buffer
+	unsigned int source_bytes_per_pixel = source_bpp / 8;
 	if (image_type == FIT_BITMAP) {
 		if (color_type == FIC_RGB) {
 			const RGBTRIPLE* line = (const RGBTRIPLE*)_FreeImage_GetBits(bitmap);
@@ -290,10 +293,11 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			uint8_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
 				line = source;
-				for (unsigned int x = 0; x < width; ++x, ++source) {
+				for (unsigned int x = 0; x < width; ++x) {
 					*dest++ = source->rgbtRed;
 					*dest++ = source->rgbtGreen;
 					*dest++ = source->rgbtBlue;
+					source = pointer_offset(source, source_bytes_per_pixel);
 				}
 				source = (const RGBTRIPLE*)pointer_offset_const(line, -(int)pitch);
 			}
@@ -304,11 +308,12 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			uint8_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
 				line = source;
-				for (unsigned int x = 0; x < width; ++x, ++source) {
+				for (unsigned int x = 0; x < width; ++x) {
 					*dest++ = source->rgbRed;
 					*dest++ = source->rgbGreen;
 					*dest++ = source->rgbBlue;
 					*dest++ = source->rgbReserved;
+					source = pointer_offset(source, source_bytes_per_pixel);
 				}
 				source = (const RGBQUAD*)pointer_offset_const(line, -(int)pitch);
 			}
