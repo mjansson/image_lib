@@ -42,8 +42,6 @@ image_module_initialize(const image_config_t config) {
 
 	image_initialize_config(config);
 
-	log_debug(HASH_IMAGE, STRING_CONST("Initializing image module"));
-
 	image_freeimage_initialize();
 
 	_image_initialized = true;
@@ -60,8 +58,6 @@ void
 image_module_finalize(void) {
 	if (!_image_initialized)
 		return;
-
-	log_debug(HASH_IMAGE, STRING_CONST("Terminating image module"));
 
 	image_freeimage_finalize();
 }
