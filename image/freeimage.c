@@ -297,7 +297,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 					*dest++ = source->rgbtRed;
 					*dest++ = source->rgbtGreen;
 					*dest++ = source->rgbtBlue;
-					source = pointer_offset(source, source_bytes_per_pixel);
+					source = pointer_offset_const(source, source_bytes_per_pixel);
 				}
 				source = (const RGBTRIPLE*)pointer_offset_const(line, -(int)pitch);
 			}
@@ -313,7 +313,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 					*dest++ = source->rgbGreen;
 					*dest++ = source->rgbBlue;
 					*dest++ = source->rgbReserved;
-					source = pointer_offset(source, source_bytes_per_pixel);
+					source = pointer_offset_const(source, source_bytes_per_pixel);
 				}
 				source = (const RGBQUAD*)pointer_offset_const(line, -(int)pitch);
 			}
