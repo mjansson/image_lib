@@ -29,102 +29,95 @@ image_freeimage_initialize(void);
 extern void
 image_freeimage_finalize(void);
 
-static object_t _library_freeimage;
+static object_t library_freeimage;
 
-typedef void(DLL_CALLCONV* FreeImage_Initialise_Fn)(BOOL);
-typedef void(DLL_CALLCONV* FreeImage_DeInitialise_Fn)(void);
-typedef FREE_IMAGE_FORMAT(DLL_CALLCONV* FreeImage_GetFileTypeFromHandle_Fn)(FreeImageIO*, fi_handle, int);
-typedef FIBITMAP*(DLL_CALLCONV* FreeImage_LoadFromHandle_Fn)(FREE_IMAGE_FORMAT, FreeImageIO*, fi_handle, int);
-typedef void(DLL_CALLCONV* FreeImage_Unload_Fn)(FIBITMAP*);
+typedef void(DLL_CALLCONV* FreeImage_Initialise_t)(BOOL);
+typedef void(DLL_CALLCONV* FreeImage_DeInitialise_t)(void);
+typedef FREE_IMAGE_FORMAT(DLL_CALLCONV* FreeImage_GetFileTypeFromHandle_t)(FreeImageIO*, fi_handle, int);
+typedef FIBITMAP*(DLL_CALLCONV* FreeImage_LoadFromHandle_t)(FREE_IMAGE_FORMAT, FreeImageIO*, fi_handle, int);
+typedef void(DLL_CALLCONV* FreeImage_Unload_t)(FIBITMAP*);
 
-typedef unsigned(DLL_CALLCONV* FreeImage_GetWidth_Fn)(FIBITMAP*);
-typedef unsigned(DLL_CALLCONV* FreeImage_GetHeight_Fn)(FIBITMAP*);
-typedef unsigned(DLL_CALLCONV* FreeImage_GetPitch_Fn)(FIBITMAP*);
-typedef unsigned(DLL_CALLCONV* FreeImage_GetBPP_Fn)(FIBITMAP*);
-typedef FREE_IMAGE_TYPE(DLL_CALLCONV* FreeImage_GetImageType_Fn)(FIBITMAP*);
-typedef FREE_IMAGE_COLOR_TYPE(DLL_CALLCONV* FreeImage_GetColorType_Fn)(FIBITMAP*);
-typedef BYTE*(DLL_CALLCONV* FreeImage_GetBits_Fn)(FIBITMAP*);
+typedef unsigned(DLL_CALLCONV* FreeImage_GetWidth_t)(FIBITMAP*);
+typedef unsigned(DLL_CALLCONV* FreeImage_GetHeight_t)(FIBITMAP*);
+typedef unsigned(DLL_CALLCONV* FreeImage_GetPitch_t)(FIBITMAP*);
+typedef unsigned(DLL_CALLCONV* FreeImage_GetBPP_t)(FIBITMAP*);
+typedef FREE_IMAGE_TYPE(DLL_CALLCONV* FreeImage_GetImageType_t)(FIBITMAP*);
+typedef FREE_IMAGE_COLOR_TYPE(DLL_CALLCONV* FreeImage_GetColorType_t)(FIBITMAP*);
+typedef BYTE*(DLL_CALLCONV* FreeImage_GetBits_t)(FIBITMAP*);
 
-static FreeImage_Initialise_Fn _FreeImage_Initialise;
-static FreeImage_DeInitialise_Fn _FreeImage_DeInitialise;
-static FreeImage_GetFileTypeFromHandle_Fn _FreeImage_GetFileTypeFromHandle;
-static FreeImage_LoadFromHandle_Fn _FreeImage_LoadFromHandle;
-static FreeImage_Unload_Fn _FreeImage_Unload;
+static FreeImage_Initialise_t FreeImage_Initialise_Fn;
+static FreeImage_DeInitialise_t FreeImage_DeInitialise_Fn;
+static FreeImage_GetFileTypeFromHandle_t FreeImage_GetFileTypeFromHandle_Fn;
+static FreeImage_LoadFromHandle_t FreeImage_LoadFromHandle_Fn;
+static FreeImage_Unload_t FreeImage_Unload_Fn;
 
-static FreeImage_GetWidth_Fn _FreeImage_GetWidth;
-static FreeImage_GetHeight_Fn _FreeImage_GetHeight;
-static FreeImage_GetPitch_Fn _FreeImage_GetPitch;
-static FreeImage_GetBPP_Fn _FreeImage_GetBPP;
-static FreeImage_GetImageType_Fn _FreeImage_GetImageType;
-static FreeImage_GetColorType_Fn _FreeImage_GetColorType;
-static FreeImage_GetBits_Fn _FreeImage_GetBits;
+static FreeImage_GetWidth_t FreeImage_GetWidth_Fn;
+static FreeImage_GetHeight_t FreeImage_GetHeight_Fn;
+static FreeImage_GetPitch_t FreeImage_GetPitch_Fn;
+static FreeImage_GetBPP_t FreeImage_GetBPP_Fn;
+static FreeImage_GetImageType_t FreeImage_GetImageType_Fn;
+static FreeImage_GetColorType_t FreeImage_GetColorType_Fn;
+static FreeImage_GetBits_t FreeImage_GetBits_Fn;
 
 void
 image_freeimage_initialize(void) {
-	if (!_library_freeimage)
-		_library_freeimage = library_load(STRING_CONST("FreeImage"));
-	if (!_library_freeimage)
-		_library_freeimage = library_load(STRING_CONST("freeimage"));
+	if (!library_freeimage)
+		library_freeimage = library_load(STRING_CONST("FreeImage"));
+	if (!library_freeimage)
+		library_freeimage = library_load(STRING_CONST("freeimage"));
 
-	if (_library_freeimage) {
-		_FreeImage_Initialise =
-		    (FreeImage_Initialise_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_Initialise"));
-		_FreeImage_DeInitialise =
-		    (FreeImage_DeInitialise_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_DeInitialise"));
-		_FreeImage_GetFileTypeFromHandle = (FreeImage_GetFileTypeFromHandle_Fn)library_symbol(
-		    _library_freeimage, STRING_CONST("FreeImage_GetFileTypeFromHandle"));
-		_FreeImage_LoadFromHandle =
-		    (FreeImage_LoadFromHandle_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_LoadFromHandle"));
-		_FreeImage_Unload = (FreeImage_Unload_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_Unload"));
-		_FreeImage_GetWidth =
-		    (FreeImage_GetWidth_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetWidth"));
-		_FreeImage_GetHeight =
-		    (FreeImage_GetHeight_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetHeight"));
-		_FreeImage_GetPitch =
-		    (FreeImage_GetPitch_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetPitch"));
-		_FreeImage_GetBPP = (FreeImage_GetBPP_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetBPP"));
-		_FreeImage_GetPitch =
-		    (FreeImage_GetPitch_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetPitch"));
-		_FreeImage_GetImageType =
-		    (FreeImage_GetImageType_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetImageType"));
-		_FreeImage_GetColorType =
-		    (FreeImage_GetColorType_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetColorType"));
-		_FreeImage_GetBits =
-		    (FreeImage_GetBits_Fn)library_symbol(_library_freeimage, STRING_CONST("FreeImage_GetBits"));
+	if (library_freeimage) {
+		FreeImage_Initialise_Fn =
+		    (FreeImage_Initialise_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_Initialise"));
+		FreeImage_DeInitialise_Fn =
+		    (FreeImage_DeInitialise_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_DeInitialise"));
+		FreeImage_GetFileTypeFromHandle_Fn = (FreeImage_GetFileTypeFromHandle_t)library_symbol(
+		    library_freeimage, STRING_CONST("FreeImage_GetFileTypeFromHandle"));
+		FreeImage_LoadFromHandle_Fn =
+		    (FreeImage_LoadFromHandle_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_LoadFromHandle"));
+		FreeImage_Unload_Fn = (FreeImage_Unload_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_Unload"));
+		FreeImage_GetWidth_Fn =
+		    (FreeImage_GetWidth_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetWidth"));
+		FreeImage_GetHeight_Fn =
+		    (FreeImage_GetHeight_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetHeight"));
+		FreeImage_GetPitch_Fn =
+		    (FreeImage_GetPitch_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetPitch"));
+		FreeImage_GetBPP_Fn = (FreeImage_GetBPP_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetBPP"));
+		FreeImage_GetPitch_Fn =
+		    (FreeImage_GetPitch_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetPitch"));
+		FreeImage_GetImageType_Fn =
+		    (FreeImage_GetImageType_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetImageType"));
+		FreeImage_GetColorType_Fn =
+		    (FreeImage_GetColorType_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetColorType"));
+		FreeImage_GetBits_Fn =
+		    (FreeImage_GetBits_t)library_symbol(library_freeimage, STRING_CONST("FreeImage_GetBits"));
 	} else {
-		_FreeImage_Initialise = 0;
+		FreeImage_Initialise_Fn = 0;
+		FreeImage_DeInitialise_Fn = 0;
 		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Failed to load FreeImage library"));
+		return;
 	}
 
-	if (!_FreeImage_Initialise || !_FreeImage_DeInitialise || !_FreeImage_GetFileTypeFromHandle ||
-	    !_FreeImage_LoadFromHandle || !_FreeImage_Unload || !_FreeImage_GetWidth || !_FreeImage_GetHeight ||
-	    !_FreeImage_GetPitch || !_FreeImage_GetBPP || !_FreeImage_GetImageType || !_FreeImage_GetColorType ||
-	    !_FreeImage_GetBits) {
-		_FreeImage_Initialise = 0;
-		_FreeImage_DeInitialise = 0;
-		_FreeImage_GetFileTypeFromHandle = 0;
-		_FreeImage_LoadFromHandle = 0;
-		_FreeImage_Unload = 0;
-		_FreeImage_GetWidth = 0;
-		_FreeImage_GetHeight = 0;
-		_FreeImage_GetPitch = 0;
-		_FreeImage_GetBPP = 0;
-		_FreeImage_GetImageType = 0;
-		_FreeImage_GetColorType = 0;
-		_FreeImage_GetBits = 0;
+	if (!FreeImage_Initialise_Fn || !FreeImage_DeInitialise_Fn || !FreeImage_GetFileTypeFromHandle_Fn ||
+	    !FreeImage_LoadFromHandle_Fn || !FreeImage_Unload_Fn || !FreeImage_GetWidth_Fn || !FreeImage_GetHeight_Fn ||
+	    !FreeImage_GetPitch_Fn || !FreeImage_GetBPP_Fn || !FreeImage_GetImageType_Fn || !FreeImage_GetColorType_Fn ||
+	    !FreeImage_GetBits_Fn) {
+		FreeImage_Initialise_Fn = 0;
+		FreeImage_DeInitialise_Fn = 0;
+		log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Failed to find symbold is loaded FreeImage library"));
 	}
 
-	if (_FreeImage_Initialise)
-		_FreeImage_Initialise(0);
+	if (FreeImage_Initialise_Fn)
+		FreeImage_Initialise_Fn(0);
 }
 
 void
 image_freeimage_finalize(void) {
-	if (_FreeImage_DeInitialise)
-		_FreeImage_DeInitialise();
-	if (_library_freeimage)
-		library_release(_library_freeimage);
-	_library_freeimage = 0;
+	if (FreeImage_DeInitialise_Fn)
+		FreeImage_DeInitialise_Fn();
+	if (library_freeimage)
+		library_release(library_freeimage);
+	library_freeimage = 0;
 }
 
 static unsigned DLL_CALLCONV
@@ -170,20 +163,20 @@ image_freeimage_tell(fi_handle handle) {
 
 bool
 image_freeimage_load(image_t* image, stream_t* stream) {
-	if (!_FreeImage_LoadFromHandle)
+	if (!FreeImage_Initialise_Fn)
 		return false;
 
 	FreeImageIO io = {image_freeimage_read, image_freeimage_write, image_freeimage_seek, image_freeimage_tell};
 
 	size_t begin_pos = stream_tell(stream);
-	FREE_IMAGE_FORMAT fif = _FreeImage_GetFileTypeFromHandle(&io, (fi_handle)stream, 0);
+	FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromHandle_Fn(&io, (fi_handle)stream, 0);
 	if (fif == FIF_UNKNOWN) {
 		log_info(HASH_IMAGE, STRING_CONST("FreeImage failed to get file type from stream"));
 		return false;
 	}
 
 	stream_seek(stream, (ssize_t)begin_pos, STREAM_SEEK_BEGIN);
-	FIBITMAP* bitmap = _FreeImage_LoadFromHandle(fif, &io, (fi_handle)stream, 0);
+	FIBITMAP* bitmap = FreeImage_LoadFromHandle_Fn(fif, &io, (fi_handle)stream, 0);
 	if (!bitmap) {
 		log_info(HASH_IMAGE, STRING_CONST("FreeImage failed to load image from stream"));
 		return false;
@@ -193,11 +186,11 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	memset(&pixelformat, 0, sizeof(pixelformat));
 
 	int err = -1;
-	unsigned int width = _FreeImage_GetWidth(bitmap);
-	unsigned int height = _FreeImage_GetHeight(bitmap);
-	unsigned int pitch = _FreeImage_GetPitch(bitmap);
-	FREE_IMAGE_TYPE image_type = _FreeImage_GetImageType(bitmap);
-	FREE_IMAGE_COLOR_TYPE color_type = _FreeImage_GetColorType(bitmap);
+	unsigned int width = FreeImage_GetWidth_Fn(bitmap);
+	unsigned int height = FreeImage_GetHeight_Fn(bitmap);
+	unsigned int pitch = FreeImage_GetPitch_Fn(bitmap);
+	FREE_IMAGE_TYPE image_type = FreeImage_GetImageType_Fn(bitmap);
+	FREE_IMAGE_COLOR_TYPE color_type = FreeImage_GetColorType_Fn(bitmap);
 
 	log_infof(HASH_IMAGE, STRING_CONST("Loaded image: %.*s (type %d, color %d)"), STRING_FORMAT(stream->path),
 	          (int)image_type, (int)color_type);
@@ -217,7 +210,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	unsigned int source_bpp = 0;
 
 	if (image_type == FIT_BITMAP) {
-		source_bpp = _FreeImage_GetBPP(bitmap);
+		source_bpp = FreeImage_GetBPP_Fn(bitmap);
 		if ((color_type != FIC_RGB) && (color_type != FIC_RGBALPHA)) {
 			log_warnf(HASH_IMAGE, WARNING_UNSUPPORTED, STRING_CONST("Unsupported FreeImage color type: %u"),
 			          (unsigned int)image_type);
@@ -288,7 +281,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	unsigned int source_bytes_per_pixel = source_bpp / 8;
 	if (image_type == FIT_BITMAP) {
 		if (color_type == FIC_RGB) {
-			const RGBTRIPLE* line = (const RGBTRIPLE*)_FreeImage_GetBits(bitmap);
+			const RGBTRIPLE* line = (const RGBTRIPLE*)FreeImage_GetBits_Fn(bitmap);
 			const RGBTRIPLE* source = (const RGBTRIPLE*)pointer_offset_const(line, pitch * (height - 1));
 			uint8_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
@@ -303,7 +296,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			}
 			err = 0;
 		} else if (color_type == FIC_RGBALPHA) {
-			const RGBQUAD* line = (const RGBQUAD*)_FreeImage_GetBits(bitmap);
+			const RGBQUAD* line = (const RGBQUAD*)FreeImage_GetBits_Fn(bitmap);
 			const RGBQUAD* source = (const RGBQUAD*)pointer_offset_const(line, pitch * (height - 1));
 			uint8_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
@@ -321,7 +314,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 		}
 	} else {
 		if (image_type == FIT_RGB16) {
-			const FIRGB16* line = (const FIRGB16*)_FreeImage_GetBits(bitmap);
+			const FIRGB16* line = (const FIRGB16*)FreeImage_GetBits_Fn(bitmap);
 			const FIRGB16* source = (const FIRGB16*)pointer_offset_const(line, pitch * (height - 1));
 			uint16_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
@@ -335,7 +328,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			}
 			err = 0;
 		} else if (image_type == FIT_RGBA16) {
-			const FIRGBA16* line = (const FIRGBA16*)_FreeImage_GetBits(bitmap);
+			const FIRGBA16* line = (const FIRGBA16*)FreeImage_GetBits_Fn(bitmap);
 			const FIRGBA16* source = (const FIRGBA16*)pointer_offset_const(line, pitch * (height - 1));
 			uint16_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
@@ -350,7 +343,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			}
 			err = 0;
 		} else if (image_type == FIT_RGBF) {
-			const FIRGBF* line = (const FIRGBF*)_FreeImage_GetBits(bitmap);
+			const FIRGBF* line = (const FIRGBF*)FreeImage_GetBits_Fn(bitmap);
 			const FIRGBF* source = (const FIRGBF*)pointer_offset_const(line, pitch * (height - 1));
 			float32_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
@@ -365,7 +358,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 			}
 			err = 0;
 		} else if (image_type == FIT_RGBAF) {
-			const FIRGBAF* line = (const FIRGBAF*)_FreeImage_GetBits(bitmap);
+			const FIRGBAF* line = (const FIRGBAF*)FreeImage_GetBits_Fn(bitmap);
 			const FIRGBAF* source = (const FIRGBAF*)pointer_offset_const(line, pitch * (height - 1));
 			float32_t* dest = (void*)image->data;
 			for (unsigned int y = 0; y < height; ++y) {
@@ -383,7 +376,7 @@ image_freeimage_load(image_t* image, stream_t* stream) {
 	}
 
 cleanup:
-	_FreeImage_Unload(bitmap);
+	FreeImage_Unload_Fn(bitmap);
 
 	return !err;
 }

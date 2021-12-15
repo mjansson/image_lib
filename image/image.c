@@ -21,8 +21,8 @@
 #include "image.h"
 #include "freeimage.h"
 
-static image_config_t _image_config;
-static bool _image_initialized;
+static image_config_t image_config;
+static bool image_initialized;
 
 void
 image_freeimage_initialize(void);
@@ -32,31 +32,31 @@ image_freeimage_finalize(void);
 
 static void
 image_initialize_config(const image_config_t config) {
-	_image_config = config;
+	image_config = config;
 }
 
 int
 image_module_initialize(const image_config_t config) {
-	if (_image_initialized)
+	if (image_initialized)
 		return 0;
 
 	image_initialize_config(config);
 
 	image_freeimage_initialize();
 
-	_image_initialized = true;
+	image_initialized = true;
 
 	return 0;
 }
 
 bool
 image_module_is_initialized(void) {
-	return _image_initialized;
+	return image_initialized;
 }
 
 void
 image_module_finalize(void) {
-	if (!_image_initialized)
+	if (!image_initialized)
 		return;
 
 	image_freeimage_finalize();
@@ -64,7 +64,7 @@ image_module_finalize(void) {
 
 image_config_t
 image_module_config(void) {
-	return _image_config;
+	return image_config;
 }
 
 void
@@ -186,8 +186,8 @@ image_buffer_size(const image_pixelformat_t* pixelformat, unsigned int width, un
 
 bool
 image_load(image_t* image, stream_t* stream) {
-	if (_image_config.loader) {
-		if (_image_config.loader(image, stream))
+	if (image_config.loader) {
+		if (image_config.loader(image, stream))
 			return true;
 	}
 	if (image_freeimage_load(image, stream))
